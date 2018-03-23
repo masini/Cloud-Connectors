@@ -68,7 +68,7 @@ import org.apache.kafka.common.PartitionInfo;
  */
 public class KafkaManagedConnection implements ManagedConnection, KafkaConnection {
     
-    private KafkaProducer producer;
+    private final KafkaProducer producer;
     private final List<ConnectionEventListener> listeners;
     private final HashSet<KafkaConnectionImpl> connectionHandles;
     private PrintWriter writer;
@@ -165,13 +165,15 @@ public class KafkaManagedConnection implements ManagedConnection, KafkaConnectio
     @Override
     public void close() throws Exception {
         producer.close();
-        producer = null;
+        //producer = null;
     }
     
     void remove(KafkaConnectionImpl conn) {
         connectionHandles.remove(conn);
         for (ConnectionEventListener listener : listeners) {
-            listener.connectionClosed(new ConnectionEvent(this,ConnectionEvent.CONNECTION_CLOSED));
+            final ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_CLOSED);
+            event.setConnectionHandle(conn);
+            listener.connectionClosed(event);
         }
     }
     

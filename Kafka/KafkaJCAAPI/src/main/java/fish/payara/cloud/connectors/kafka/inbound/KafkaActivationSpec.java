@@ -40,7 +40,6 @@
 package fish.payara.cloud.connectors.kafka.inbound;
 
 import fish.payara.cloud.connectors.kafka.api.KafkaListener;
-import fish.payara.cloud.connectors.kafka.tools.AdditionalPropertiesParser;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 
 import javax.resource.ResourceException;
@@ -57,7 +56,6 @@ import java.util.Properties;
 public class KafkaActivationSpec implements ActivationSpec {
 
     private final Properties consumerProperties;
-    private AdditionalPropertiesParser additionalPropertiesParser;
 
     private ResourceAdapter ra;
 
@@ -188,9 +186,7 @@ public class KafkaActivationSpec implements ActivationSpec {
     }
 
     public Properties getConsumerProperties() {
-        return additionalPropertiesParser == null
-                    ? consumerProperties
-                    : AdditionalPropertiesParser.merge(consumerProperties, additionalPropertiesParser.parse());
+        return consumerProperties;
     }
 
     public String getTopics() {
@@ -349,6 +345,5 @@ public class KafkaActivationSpec implements ActivationSpec {
 
     public void setAdditionalProperties(String additionalProperties) {
         this.additionalProperties = additionalProperties;
-        this.additionalPropertiesParser = new AdditionalPropertiesParser(additionalProperties);
     }
 }

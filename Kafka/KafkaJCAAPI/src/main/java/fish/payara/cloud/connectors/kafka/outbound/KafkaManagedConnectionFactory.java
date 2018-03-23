@@ -39,24 +39,19 @@
  */
 package fish.payara.cloud.connectors.kafka.outbound;
 
-import fish.payara.cloud.connectors.kafka.api.KafkaConnectionFactory;
 import fish.payara.cloud.connectors.kafka.api.KafkaConnection;
-import java.io.PrintWriter;
-import java.io.Serializable;
-import java.util.Properties;
-import java.util.Set;
-import javax.resource.ResourceException;
-import javax.resource.spi.ConfigProperty;
-import javax.resource.spi.ConnectionDefinition;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionFactory;
-import javax.security.auth.Subject;
-
-import fish.payara.cloud.connectors.kafka.tools.AdditionalPropertiesParser;
+import fish.payara.cloud.connectors.kafka.api.KafkaConnectionFactory;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+
+import javax.resource.ResourceException;
+import javax.resource.spi.*;
+import javax.security.auth.Subject;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  *
@@ -70,7 +65,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, Serializable {
 
     private final Properties producerProperties;
-    private AdditionalPropertiesParser additionalPropertiesParser;
+    //private AdditionalPropertiesParser additionalPropertiesParser;
 
     @ConfigProperty(defaultValue = "localhost:9092", description = "Kafka Servers to Connect to", type = String.class)
     private String bootstrapServersConfig;
@@ -322,7 +317,7 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
 
     public void setAdditionalProperties(String additionalProperties) {
         this.additionalProperties = additionalProperties;
-        this.additionalPropertiesParser = new AdditionalPropertiesParser(additionalProperties);
+        //this.additionalPropertiesParser = new AdditionalPropertiesParser(additionalProperties);
     }
 
     public PrintWriter getWriter() {
@@ -335,10 +330,7 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
 
     @Override
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
-        Properties properties =
-                additionalPropertiesParser == null
-                        ? producerProperties
-                        : AdditionalPropertiesParser.merge(producerProperties,  additionalPropertiesParser.parse());
+        Properties properties = producerProperties;
         if (producer == null) {
             producer = new KafkaProducer(properties);
         }
@@ -347,10 +339,7 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
 
     @Override
     public Object createConnectionFactory() throws ResourceException {
-        Properties properties =
-                additionalPropertiesParser == null
-                        ? producerProperties
-                        : AdditionalPropertiesParser.merge(producerProperties,  additionalPropertiesParser.parse());
+        Properties properties = producerProperties;
         if (producer == null) {
             producer = new KafkaProducer(properties);
         }
@@ -359,10 +348,11 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
 
     @Override
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
-        Properties properties =
-                additionalPropertiesParser == null
-                        ? producerProperties
-                        : AdditionalPropertiesParser.merge(producerProperties,  additionalPropertiesParser.parse());
+        Properties properties = producerProperties;
+        //TODO: da capire perché qui non era stato messo, dimenticanza o ciclo di vita strano di WLS ?
+        if (producer == null) {
+            producer = new KafkaProducer(properties);
+        }
         return new KafkaManagedConnection(producer);
     }
 
@@ -381,4 +371,40 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
         return writer;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        KafkaManagedConnectionFactory that = (KafkaManagedConnectionFactory) o;
+        return Objects.equals(producerProperties, that.producerProperties) &&
+                //Objects.equals(additionalPropertiesParser, that.additionalPropertiesParser) &&
+                Objects.equals(bootstrapServersConfig, that.bootstrapServersConfig) &&
+                Objects.equals(clientId, that.clientId) &&
+                Objects.equals(valueSerializer, that.valueSerializer) &&
+                Objects.equals(keySerializer, that.keySerializer) &&
+                Objects.equals(bufferMemory, that.bufferMemory) &&
+                Objects.equals(acks, that.acks) &&
+                Objects.equals(retries, that.retries) &&
+                Objects.equals(batchSize, that.batchSize) &&
+                Objects.equals(lingerMS, that.lingerMS) &&
+                Objects.equals(maxBlockMS, that.maxBlockMS) &&
+                Objects.equals(maxRequestSize, that.maxRequestSize) &&
+                Objects.equals(receiveBufferBytes, that.receiveBufferBytes) &&
+                Objects.equals(requestTimeout, that.requestTimeout) &&
+                Objects.equals(compression, that.compression) &&
+                Objects.equals(connectionsMaxIdle, that.connectionsMaxIdle) &&
+                Objects.equals(maxInflightConnections, that.maxInflightConnections) &&
+                Objects.equals(metadataMaxAge, that.metadataMaxAge) &&
+                Objects.equals(retryBackoff, that.retryBackoff) &&
+                Objects.equals(reconnectBackoff, that.reconnectBackoff) &&
+                Objects.equals(additionalProperties, that.additionalProperties) &&
+                Objects.equals(writer, that.writer) &&
+                Objects.equals(producer, that.producer);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(producerProperties, /*additionalPropertiesParser,*/ bootstrapServersConfig, clientId, valueSerializer, keySerializer, bufferMemory, acks, retries, batchSize, lingerMS, maxBlockMS, maxRequestSize, receiveBufferBytes, requestTimeout, compression, connectionsMaxIdle, maxInflightConnections, metadataMaxAge, retryBackoff, reconnectBackoff, additionalProperties, writer, producer);
+    }
 }

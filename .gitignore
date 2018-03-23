@@ -26,3 +26,11 @@ hs_err_pid*
 /AzureServiceBus/AzureSBRAR/target/
 /Kafka/kafka-rest-example/target/
 target/
+
+# ignoring IDE file
+.vscode/
+.idea/
+.settings/
+*.iml
+.classpath
+.project

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<weblogic-connector xmlns="http://xmlns.oracle.com/weblogic/weblogic-connector"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://xmlns.oracle.com/weblogic/weblogic-connector http://xmlns.oracle.com/weblogic/weblogic-connector/1.5/weblogic-connector.xsd">
+    <jndi-name>KafkaJCA</jndi-name>
+    <enable-access-outside-app>true</enable-access-outside-app>
+    <enable-global-access-to-classes>true</enable-global-access-to-classes>
+    <deploy-as-a-whole>false</deploy-as-a-whole>
+    <outbound-resource-adapter>
+        <connection-definition-group>
+            <connection-factory-interface>fish.payara.cloud.connectors.kafka.KafkaConnectionFactory</connection-factory-interface>
+        </connection-definition-group>
+    </outbound-resource-adapter>
+
+</weblogic-connector>
