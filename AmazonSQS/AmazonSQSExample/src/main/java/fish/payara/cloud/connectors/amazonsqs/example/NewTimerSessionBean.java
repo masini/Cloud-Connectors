@@ -58,7 +58,7 @@ import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 @ConnectionFactoryDefinition(name = "java:comp/env/SQSConnectionFactory", 
   description = "SQS Conn Factory", 
   interfaceName = "fish.payara.cloud.connectors.amazonsqs.api.AmazonSQSConnectionFactory", 
-  resourceAdapter = "amazon-sqs-rar-0.3.0-SNAPSHOT", 
+  resourceAdapter = "amazon-sqs-rar-0.4.0-SNAPSHOT", 
   minPoolSize = 2, maxPoolSize = 2,
   transactionSupport = TransactionSupportLevel.NoTransaction,
   properties = {"awsAccessKeyId=${ENV=accessKey}",
@@ -73,7 +73,7 @@ public class NewTimerSessionBean {
     @Schedule(second = "*/1", hour="*", minute="*")   
     public void myTimer() {
         try (AmazonSQSConnection connection = factory.getConnection()) {
-        connection.sendMessage(new SendMessageRequest("https://sqs.eu-west-2.amazonaws.com/282006333273/CloudConnectorTest", "Hello World"));
+        connection.sendMessage(new SendMessageRequest(System.getenv("queueURL"), "Hello World"));
         } catch (Exception e) {}
     }
 }

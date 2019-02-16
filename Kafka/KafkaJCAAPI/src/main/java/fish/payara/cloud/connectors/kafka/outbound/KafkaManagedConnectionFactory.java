@@ -41,17 +41,23 @@ package fish.payara.cloud.connectors.kafka.outbound;
 
 import fish.payara.cloud.connectors.kafka.api.KafkaConnection;
 import fish.payara.cloud.connectors.kafka.api.KafkaConnectionFactory;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-
-import javax.resource.ResourceException;
-import javax.resource.spi.*;
-import javax.security.auth.Subject;
+import fish.payara.cloud.connectors.kafka.tools.AdditionalPropertiesParser;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import javax.resource.ResourceException;
+import javax.resource.spi.ConfigProperty;
+import javax.resource.spi.ConnectionDefinition;
+import javax.resource.spi.ConnectionManager;
+import javax.resource.spi.ConnectionRequestInfo;
+import javax.resource.spi.ManagedConnection;
+import javax.resource.spi.ManagedConnectionFactory;
+import javax.resource.spi.TransactionSupport;
+import javax.security.auth.Subject;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 
 /**
  *
@@ -62,10 +68,10 @@ import java.util.Set;
         connectionFactoryImpl = KafkaConnectionFactoryImpl.class,
         connectionImpl = KafkaConnectionImpl.class
 )
-public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, Serializable {
+public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, TransactionSupport, Serializable {
 
     private final Properties producerProperties;
-    //private AdditionalPropertiesParser additionalPropertiesParser;
+    private AdditionalPropertiesParser additionalPropertiesParser;
 
     @ConfigProperty(defaultValue = "localhost:9092", description = "Kafka Servers to Connect to", type = String.class)
     private String bootstrapServersConfig;
@@ -128,7 +134,7 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
     private String additionalProperties;
 
     transient private PrintWriter writer;
-    
+
     transient private KafkaProducer producer;
 
 
@@ -317,7 +323,7 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
 
     public void setAdditionalProperties(String additionalProperties) {
         this.additionalProperties = additionalProperties;
-        //this.additionalPropertiesParser = new AdditionalPropertiesParser(additionalProperties);
+        this.additionalPropertiesParser = new AdditionalPropertiesParser(additionalProperties);
     }
 
     public PrintWriter getWriter() {
@@ -330,7 +336,10 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
 
     @Override
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
-        Properties properties = producerProperties;
+        Properties properties =
+                additionalPropertiesParser == null
+                        ? producerProperties
+                        : AdditionalPropertiesParser.merge(producerProperties,  additionalPropertiesParser.parse());
         if (producer == null) {
             producer = new KafkaProducer(properties);
         }
@@ -339,7 +348,10 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
 
     @Override
     public Object createConnectionFactory() throws ResourceException {
-        Properties properties = producerProperties;
+        Properties properties =
+                additionalPropertiesParser == null
+                        ? producerProperties
+                        : AdditionalPropertiesParser.merge(producerProperties,  additionalPropertiesParser.parse());
         if (producer == null) {
             producer = new KafkaProducer(properties);
         }
@@ -348,11 +360,10 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
 
     @Override
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
-        Properties properties = producerProperties;
-        //TODO: da capire perché qui non era stato messo, dimenticanza o ciclo di vita strano di WLS ?
-        if (producer == null) {
-            producer = new KafkaProducer(properties);
-        }
+        Properties properties =
+                additionalPropertiesParser == null
+                        ? producerProperties
+                        : AdditionalPropertiesParser.merge(producerProperties,  additionalPropertiesParser.parse());
         return new KafkaManagedConnection(producer);
     }
 
@@ -372,12 +383,16 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
     }
 
     @Override
+    public TransactionSupportLevel getTransactionSupport() {
+        return TransactionSupportLevel.NoTransaction;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         KafkaManagedConnectionFactory that = (KafkaManagedConnectionFactory) o;
         return Objects.equals(producerProperties, that.producerProperties) &&
-                //Objects.equals(additionalPropertiesParser, that.additionalPropertiesParser) &&
                 Objects.equals(bootstrapServersConfig, that.bootstrapServersConfig) &&
                 Objects.equals(clientId, that.clientId) &&
                 Objects.equals(valueSerializer, that.valueSerializer) &&
@@ -397,14 +412,12 @@ public class KafkaManagedConnectionFactory implements ManagedConnectionFactory, 
                 Objects.equals(metadataMaxAge, that.metadataMaxAge) &&
                 Objects.equals(retryBackoff, that.retryBackoff) &&
                 Objects.equals(reconnectBackoff, that.reconnectBackoff) &&
-                Objects.equals(additionalProperties, that.additionalProperties) &&
-                Objects.equals(writer, that.writer) &&
-                Objects.equals(producer, that.producer);
+                Objects.equals(additionalProperties, that.additionalProperties);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(producerProperties, /*additionalPropertiesParser,*/ bootstrapServersConfig, clientId, valueSerializer, keySerializer, bufferMemory, acks, retries, batchSize, lingerMS, maxBlockMS, maxRequestSize, receiveBufferBytes, requestTimeout, compression, connectionsMaxIdle, maxInflightConnections, metadataMaxAge, retryBackoff, reconnectBackoff, additionalProperties, writer, producer);
+        return Objects.hash(producerProperties, bootstrapServersConfig, clientId, valueSerializer, keySerializer, bufferMemory, acks, retries, batchSize, lingerMS, maxBlockMS, maxRequestSize, receiveBufferBytes, requestTimeout, compression, connectionsMaxIdle, maxInflightConnections, metadataMaxAge, retryBackoff, reconnectBackoff, additionalProperties);
     }
 }

@@ -43,6 +43,7 @@ import fish.payara.cloud.connectors.azuresb.api.AzureSBConnection;
 import fish.payara.cloud.connectors.azuresb.api.AzureSBConnectionFactory;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.Set;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConfigProperty;
@@ -74,11 +75,13 @@ public class AzureSBManagedConnectionFactory implements ManagedConnectionFactory
     @ConfigProperty(defaultValue = "", type=String.class, description = "The SAS Key")
     private String sasKey;
     
+    @ConfigProperty(defaultValue = "", type=String.class, description = "Queue Name")
+    private String queueName;
+    
+    @ConfigProperty(defaultValue = "5", type=Integer.class, description = "Timeout")
+    private Integer timeOut;
+    
     private PrintWriter logWriter;
-
-    @ConfigProperty(defaultValue = ".servicebus.windows.net", type=String.class, description = "the base URI that is added to your Service Bus namespace to form the URI to connect to the Service Bus service. To access the default public Azure service, pass \".servicebus.windows.net\"")
-    private String serviceBusRootUri;
-
 
     @Override
     public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
@@ -134,12 +137,63 @@ public class AzureSBManagedConnectionFactory implements ManagedConnectionFactory
         this.sasKey = sasKey;
     }
 
-    public String getServiceBusRootUri() {
-        return serviceBusRootUri;
+    public String getQueueName() {
+        return queueName;
     }
 
-    public void setServiceBusRootUri(String serviceBusRootUri) {
-        this.serviceBusRootUri = serviceBusRootUri;
+    public void setQueueName(String queueName) {
+        this.queueName = queueName;
+    }
+
+    public Integer getTimeOut() {
+        return timeOut;
+    }
+
+    public void setTimeOut(Integer timeOut) {
+        this.timeOut = timeOut;
+    }
+    
+    
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 97 * hash + Objects.hashCode(this.nameSpace);
+        hash = 97 * hash + Objects.hashCode(this.sasKeyName);
+        hash = 97 * hash + Objects.hashCode(this.sasKey);
+        hash = 97 * hash + Objects.hashCode(this.queueName);
+        hash = 97 * hash + Objects.hashCode(this.timeOut);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AzureSBManagedConnectionFactory other = (AzureSBManagedConnectionFactory) obj;
+        if (!Objects.equals(this.nameSpace, other.nameSpace)) {
+            return false;
+        }
+        if (!Objects.equals(this.sasKeyName, other.sasKeyName)) {
+            return false;
+        }
+        if (!Objects.equals(this.sasKey, other.sasKey)) {
+            return false;
+        }
+        if (!Objects.equals(this.queueName, other.queueName)) {
+            return false;
+        }
+        if (!Objects.equals(this.timeOut, other.timeOut)) {
+            return false;
+        }
+        return true;
     }
     
     
