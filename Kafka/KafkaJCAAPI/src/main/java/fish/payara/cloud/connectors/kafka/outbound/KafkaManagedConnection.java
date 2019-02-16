@@ -160,7 +160,7 @@ public class KafkaManagedConnection implements ManagedConnection, KafkaConnectio
     @Override
     public void close() throws Exception {
         producer.close();
-        producer = null;
+        //producer = null;
     }
 
     void remove(KafkaConnectionImpl conn) {
@@ -170,5 +170,6 @@ public class KafkaManagedConnection implements ManagedConnection, KafkaConnectio
         for (ConnectionEventListener listener : listeners) {
             listener.connectionClosed(event);
         }
+    }
     
 }
