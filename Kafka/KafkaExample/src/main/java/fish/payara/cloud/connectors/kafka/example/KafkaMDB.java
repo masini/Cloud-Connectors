@@ -56,7 +56,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
     @ActivationConfigProperty(propertyName = "clientId", propertyValue = "testClient"),
     @ActivationConfigProperty(propertyName = "groupIdConfig", propertyValue = "testGroup"),
     @ActivationConfigProperty(propertyName = "topics", propertyValue = "test,test2"),
-    @ActivationConfigProperty(propertyName = "bootstrapServersConfig", propertyValue = "localhost:9092"),    
+    @ActivationConfigProperty(propertyName = "bootstrapServersConfig", propertyValue = "broker:9092"),
     @ActivationConfigProperty(propertyName = "autoCommitInterval", propertyValue = "100"),    
     @ActivationConfigProperty(propertyName = "retryBackoff", propertyValue = "1000"),    
     @ActivationConfigProperty(propertyName = "keyDeserializer", propertyValue = "org.apache.kafka.common.serialization.StringDeserializer"),    

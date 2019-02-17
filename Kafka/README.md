@@ -102,7 +102,7 @@ An example annotation defined connection factory is shown below;
 ```java
 @ConnectionFactoryDefinition(name = "java:comp/env/KafkaConnectionFactory", 
   description = "Kafka Conn Factory", 
-  interfaceName = "fish.payara.cloud.connectors.kafka.KafkaConnectionFactory", 
+  interfaceName = "fish.payara.cloud.connectors.kafka.api.KafkaConnectionFactory", 
   resourceAdapter = "kafka-rar-0.4.0-SNAPSHOT", 
   minPoolSize = 2, 
   maxPoolSize = 2,

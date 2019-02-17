@@ -56,19 +56,22 @@ import org.apache.kafka.clients.producer.ProducerRecord;
  */
 @ConnectionFactoryDefinition(name = "java:comp/env/KafkaConnectionFactory", 
   description = "Kafka Conn Factory", 
-  interfaceName = "fish.payara.cloud.connectors.kafka.KafkaConnectionFactory", 
+  interfaceName = "fish.payara.cloud.connectors.kafka.api.KafkaConnectionFactory",
   resourceAdapter = "kafka-rar-0.4.0-SNAPSHOT",
-  minPoolSize = 2, 
+  minPoolSize = 2,
   maxPoolSize = 2,
   transactionSupport = TransactionSupportLevel.NoTransaction,
-  properties = {})
+        properties = {
+                "bootstrapServersConfig=broker:9092",
+                "clientId=WebLogicNode"
+        })
 @Stateless
 public class SendKafkaMessage {
     
     @Resource(lookup="java:comp/env/KafkaConnectionFactory")
     KafkaConnectionFactory factory;
     
-    @Schedule(second = "*/1", hour="*", minute="*")
+    //@Schedule(second = "*/1", hour="*", minute="*")
     public void sendMessage() throws Exception {
 
         try (KafkaConnection conn = factory.createConnection()) {
